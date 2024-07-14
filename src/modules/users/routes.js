@@ -12,7 +12,8 @@ const {
     getUsersPaginated,
     validateUsernameNotId,
     validateEmailNotId,
-    getDataUsername
+    getDataUsername,
+    isPasswordValid,
 } = controllers;
 
 const router = Router();
@@ -42,6 +43,12 @@ router.post('/add', async (req, res) => {
         if (emailExists) {
             // Handle the case where the username already exists
             res.render('users/add', { alert: 'Email already exists' });
+            return;
+        }
+        
+        // Verifying lenght of password
+        if (!isPasswordValid(password)) {
+            res.render('users/add', { alert: 'Password needs to have 6 caracters or more' });
             return;
         }
 
@@ -146,6 +153,12 @@ router.post('/recover2', async (req, res) => {
     const { password, id } = req.body;
 
     //console.log(password, id);
+
+    // Verifying lenght of password
+    if (!isPasswordValid(password)) {
+        res.render('users/login', { alert: 'Password needs to have 6 caracters or more' });
+        return;
+    }
 
     const hashedPassword = hashSync(password, 5);
     const updatedUser = {

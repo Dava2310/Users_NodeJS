@@ -176,6 +176,10 @@ const getUsersPaginated = async (page, count) => {
     }
 };
 
+function isPasswordValid(password) {
+    return password.length >= 6;
+}
+
 export default {
     validateUsername,
     validateUsernameNotId, 
@@ -185,5 +189,6 @@ export default {
     getData,
     getUserById,
     getUsersPaginated,
-    getDataUsername
+    getDataUsername,
+    isPasswordValid
 };
