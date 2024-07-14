@@ -1,0 +1,60 @@
+<div class="container p-4">
+    <div class="row">
+        <div class="col-md-4 mx-auto">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h3 class="text-uppercase">REGISTER AN USER</h3>
+                </div>
+                {{#if message}}
+                    <div class="alert alert-primary" role="alert">
+                        {{message}}
+                    </div>
+                {{/if}}
+
+                {{#if alert}}
+                    <div class="alert alert-danger" role="alert">
+                        {{alert}}
+                    </div>
+                {{/if}}
+
+                <div class="card-body">
+                    <form action="/add" method="post">
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="name">Name</label>
+                            <input class="form-control" type="text" name="name" id="name"
+                                placeholder="Example: Daniel Alberto" autofocus required>
+                        </div>
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="last_name">Last Name</label>
+                            <input class="form-control" type="text" name="last_name" id="last_name"
+                                placeholder="Example: Vetencourt Alvarez" required>
+                        </div>
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="username">Username</label>
+                            <input class="form-control" type="text" name="username" id="username"
+                                placeholder="Example: Dava2310" required>
+                        </div>
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="email">Email</label>
+                            <input class="form-control" type="email" name="email" id="email"
+                                placeholder="Example: dvetencourt23@gmail.com" required>
+                        </div>
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="password">Password</label>
+                            <input class="form-control" type="password" name="password" id="password"
+                                placeholder="Example: 1234@." required>
+                        </div>
+
+                        <div class="form-group mt-4 d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

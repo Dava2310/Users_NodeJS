@@ -1,0 +1,38 @@
+<div class="container p-4">
+    <div class="row">
+        <div class="col-md-4 mx-auto">
+            <div class="card text-center">
+                <div class="card-header">
+                    <h3 class="text-uppercase">LOGIN</h3>
+                </div>
+                <div class="card-body">
+
+                    {{#if alert}}
+                    <div class="alert alert-danger" role="alert">
+                        {{alert}}
+                    </div>
+                    {{/if}}
+
+                    <form action="/login" method="post">
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="username">Username</label>
+                            <input class="form-control" type="text" name="username" id="username"
+                                placeholder="Example: Dava2310" required>
+                        </div>
+
+                        <div class="input-group mt-2">
+                            <label class="input-group-text" for="password">Password</label>
+                            <input class="form-control" type="password" name="password" id="password"
+                                placeholder="Example: 1234@." required>
+                        </div>
+
+                        <div class="form-group mt-4 d-grid gap-2">
+                            <button type="submit" class="btn btn-success">Sign in</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
