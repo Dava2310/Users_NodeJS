@@ -10,6 +10,10 @@
                 <div class="alert alert-success">{{ message }}</div>
                 {{/if}}
 
+                {{#if alert_message}}
+                <div class="alert alert-danger">{{ alert_message }}</div>
+                {{/if}}
+
                 <div class="card-body">
                     <form action="/update" method="post">
                         <div class="input-group mt-2">
