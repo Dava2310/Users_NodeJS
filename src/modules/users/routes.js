@@ -3,7 +3,7 @@ import {hashSync} from 'bcrypt'
 import pool from '../../DB/mysql.js'
 import controllers from './controller.js';
 
-const {validateUsername, validateEmail, authenticateUser, getData} = controllers;
+const {validateUsername, validateEmail, authenticateUser, getData, getUserById} = controllers;
 
 const router = Router();
 
@@ -138,6 +138,26 @@ router.get('/logout', (req, res) => {
         res.clearCookie('session-id'); // Limpiar la cookie de sesión si es necesario
         res.redirect('/login'); // Redirige a la página de inicio de sesión u otra página
     });
+});
+
+// EndPoints
+
+// Getting only one user
+router.get('/api/v1/users/:id', async(req, res) => {
+
+    try {
+        const { id } = req.params;
+        const user = await getUserById(id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user);
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        res.status(500).json({ message: 'Error fetching user' });
+    }
 });
 
 export default router;

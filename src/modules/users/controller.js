@@ -79,9 +79,25 @@ const getData = async(id) => {
     }
 }
 
+const getUserById = async (id) => {
+    try {
+        const [rows] = await pool.query('SELECT id, name, last_name, username, email FROM users WHERE id = ?', [id]);
+
+        if (rows.length === 0) {
+            return null;
+        }
+
+        return rows[0];
+    } catch (err) {
+        console.error('Error fetching user:', err);
+        throw err;
+    }
+};
+
 export default {
     validateUsername, 
     validateEmail, 
     authenticateUser,
-    getData
+    getData,
+    getUserById
 };
