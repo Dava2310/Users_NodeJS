@@ -112,7 +112,12 @@ router.get('/dashboard', async(req, res) => {
     }
 
     const user = await getData(req.session.userId);
-    console.log(user);
+    
+    if (user === false)
+    {
+        res.redirect('/logout'); // Redirige si no hay sesión activa
+        return;
+    }
 
     res.render('users/dashboard', {user: user, message, alert_message, layout: 'system'});
 })

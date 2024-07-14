@@ -110,8 +110,13 @@ const getData = async(id) => {
         const connection = await pool.getConnection();
         const [rows] = await connection.query('SELECT * FROM users WHERE id = ?', [id]);
         connection.release();
-        return rows[0];
         
+        if (rows.length === 0) {
+            return false;
+        }
+        
+        return rows[0];
+
     } catch (err) {
         console.error('Error getting data:', err);
         throw err;
