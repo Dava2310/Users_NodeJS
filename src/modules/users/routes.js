@@ -1,17 +1,18 @@
-import {Router} from 'express'
-import {hashSync} from 'bcrypt'
+import { Router } from 'express'
+import { hashSync } from 'bcrypt'
 import pool from '../../DB/mysql.js'
 import controllers from './controller.js';
 
 const {
-    validateUsername, 
-    validateEmail, 
-    authenticateUser, 
-    getData, 
-    getUserById, 
+    validateUsername,
+    validateEmail,
+    authenticateUser,
+    getData,
+    getUserById,
     getUsersPaginated,
     validateUsernameNotId,
-    validateEmailNotId
+    validateEmailNotId,
+    getDataUsername
 } = controllers;
 
 const router = Router();
@@ -21,10 +22,10 @@ router.get('/add', (req, res) => {
     res.render('users/add');
 })
 
-router.post('/add', async(req, res) => {
+router.post('/add', async (req, res) => {
     try {
 
-        const {name, last_name, username, email, password} = req.body;
+        const { name, last_name, username, email, password } = req.body;
 
         // Validate if username already exists
         const usernameExists = await validateUsername(username);
@@ -58,7 +59,7 @@ router.post('/add', async(req, res) => {
         res.redirect('/add/success');
 
     } catch (err) {
-        res.status(500).json({message: err.message});
+        res.status(500).json({ message: err.message });
     }
 })
 
@@ -69,31 +70,97 @@ router.get('/add/success', (req, res) => {
 
 // Login Routes
 router.get('/login', (req, res) => {
-    res.render('users/login');
+
+    const message = req.session.message;
+    console.log("Message: ", message)
+    delete req.session.message;
+
+    res.render('users/login', {message: message});
 })
 
-router.post('/login', async(req, res) => {
-    const {username, password} = req.body;
+router.post('/login', async (req, res) => {
+    const { username, password } = req.body;
 
     // Validating authentication
     const user = await authenticateUser(username, password);
 
-    if (user)
-    {
+    if (user) {
         req.session.username = user.username;
         req.session.userId = user.id;
-        
+
         console.log(req.session.userId + req.session.username);
         // Redirect to home page
         res.redirect('/dashboard'); // Redirige a la página de dashboard u otra página protegida
         return;
     }
-    
-    res.render('users/login', { alert: 'Invalid credentials' });
+    res.render('users/login', { alert: 'Invalid credentials'});
 })
 
+// Reset password route
+router.get('/recover', (req, res) => {
+    res.render('users/recover');
+})
+
+router.post('/recover', async (req, res) => {
+    const { username } = req.body;
+
+    // Validating username
+    const userExists = await validateUsername(username);
+
+    if (!userExists) {
+        res.render('users/recover', { alert: 'Username not found' });
+        return;
+    }
+
+    // If exists, get ID
+    const user = await getDataUsername(username);
+
+    if (!user) {
+        res.render('users/recover', { alert: 'Username not found' });
+        return;
+    }
+
+    console.log(user);
+
+    // Render phase 2 of recover password
+    req.session.userId = user.id;
+    res.redirect('/recover2');
+
+})
+
+router.get('/recover2', (req, res) => {
+
+    if (!req.session.userId) {
+        res.redirect('/recover'); // Redirige si no hay sesión activa
+        return;
+    }
+
+    const id = req.session.userId;
+    console.log(id)
+    delete req.session.userId;
+
+    res.render('users/recover2', {userId: id});
+})
+
+router.post('/recover2', async (req, res) => {
+    const { password, id } = req.body;
+
+    //console.log(password, id);
+
+    const hashedPassword = hashSync(password, 5);
+    const updatedUser = {
+        password: hashedPassword
+    }
+
+    await pool.query('UPDATE users SET? WHERE id =?', [updatedUser, id]);
+    req.session.message = "Password updated successfully";
+    res.redirect('/login');
+    return;
+});
+
+
 // Dashboard Routes
-router.get('/dashboard', async(req, res) => {
+router.get('/dashboard', async (req, res) => {
 
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.setHeader('Pragma', 'no-cache');
@@ -112,22 +179,21 @@ router.get('/dashboard', async(req, res) => {
     }
 
     const user = await getData(req.session.userId);
-    
-    if (user === false)
-    {
+
+    if (user === false) {
         res.redirect('/logout'); // Redirige si no hay sesión activa
         return;
     }
 
-    res.render('users/dashboard', {user: user, message, alert_message, layout: 'system'});
+    res.render('users/dashboard', { user: user, message, alert_message, layout: 'system' });
 })
 
 // UPDATE
-router.post('/update', async(req, res) => {
+router.post('/update', async (req, res) => {
     try {
-        const {name, last_name, username, email} = req.body;
+        const { name, last_name, username, email } = req.body;
         const id = req.session.userId;
-        
+
         // Check if the user exists
         const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [id]);
         if (rows.length === 0) {
@@ -155,12 +221,12 @@ router.post('/update', async(req, res) => {
         }
 
         await pool.query('UPDATE users SET name =?, last_name =?, email =?, username=? WHERE id =?', [name, last_name, email, username, id]);
-        
+
         // Guardar mensaje en la sesión
         req.session.message = 'User updated successfully';
         res.redirect('/dashboard');
         return;
-        
+
     } catch (err) {
         console.error('Error al actualizar el usuario:', err);
         res.status(500).send('Error al actualizar el usuario');
@@ -185,7 +251,7 @@ router.get('/logout', (req, res) => {
 // EndPoints
 
 // Getting only one user
-router.get('/api/v1/users/:id', async(req, res) => {
+router.get('/api/v1/users/:id', async (req, res) => {
 
     try {
         const { id } = req.params;
@@ -218,9 +284,9 @@ router.get('/api/v1/users', async (req, res) => {
 });
 
 // UPDATING ONE USER
-router.put('/api/v1/users/:id', async(req, res) => {
+router.put('/api/v1/users/:id', async (req, res) => {
     try {
-        
+
         // Getting the ID
         const id = parseInt(req.params.id);
 
@@ -231,7 +297,7 @@ router.put('/api/v1/users/:id', async(req, res) => {
         }
 
         // Getting the other data
-        const {name, last_name, username, email} = req.body;
+        const { name, last_name, username, email } = req.body;
 
         // Validate if username already exists
         const usernameExists = await validateUsernameNotId(username, id);
@@ -262,18 +328,18 @@ router.put('/api/v1/users/:id', async(req, res) => {
 });
 
 // DELETING ONE USER
-router.delete('/api/v1/users/:id', async(req, res) => {
+router.delete('/api/v1/users/:id', async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         const [rows] = await pool.query('SELECT * FROM users WHERE id =?', [id]);
-        
+
         if (rows.length === 0) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
         await pool.query('DELETE FROM users WHERE id =?', [id]);
         res.status(200).json({ message: 'User deleted successfully' });
-        
+
     } catch (err) {
         console.error('Error fetching users:', err);
         res.status(500).json({ message: 'Error deleting user' });

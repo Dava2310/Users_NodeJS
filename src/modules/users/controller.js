@@ -123,6 +123,24 @@ const getData = async(id) => {
     }
 }
 
+const getDataUsername = async(username) => {
+    try {
+        const connection = await pool.getConnection();
+        const [rows] = await connection.query('SELECT * FROM users WHERE username = ?', [username]);
+        connection.release();
+        
+        if (rows.length === 0) {
+            return false;
+        }
+        
+        return rows[0];
+
+    } catch (err) {
+        console.error('Error getting data:', err);
+        throw err;
+    }
+}
+
 const getUserById = async (id) => {
     try {
         const [rows] = await pool.query('SELECT id, name, last_name, username, email FROM users WHERE id = ?', [id]);
@@ -166,5 +184,6 @@ export default {
     authenticateUser,
     getData,
     getUserById,
-    getUsersPaginated
+    getUsersPaginated,
+    getDataUsername
 };
